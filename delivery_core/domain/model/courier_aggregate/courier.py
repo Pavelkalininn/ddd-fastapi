@@ -20,7 +20,7 @@ class Courier:
 
     @classmethod
     def create(cls, courier_id: uuid.UUID, name: str, transport: Transport, location: Location) -> Result['Courier', Error]:
-        if courier_id == uuid.UUID(int=0):
+        if courier_id == uuid.UUID(int=0) or not courier_id:
             return Result.failure(GeneralErrors.value_is_required("courier_id"))
         if not name:
             return Result.failure(GeneralErrors.value_is_required("name"))

@@ -7,6 +7,7 @@ from delivery_core.domain.model.courier_aggregate.courier import Courier
 from delivery_core.domain.model.courier_aggregate.courier_status import \
     CourierStatus
 from delivery_core.domain.model.courier_aggregate.transport import Transport
+from delivery_core.domain.model.order_aggregate.order import Order
 from delivery_core.domain.shared_kernel.location import Location
 
 
@@ -14,7 +15,7 @@ class TestCourier:
     @staticmethod
     def get_invalid_courier_data() -> List[Tuple]:
         return [
-            ('ke', "Petya", Transport.create("Good car", 1),
+            (None, "Petya", Transport.create("Good car", 1),
              Location.create(1, 2)),
             (uuid.uuid4(), None, Transport.create("Good car", 1),
              Location.create(1, 2)),
@@ -45,15 +46,19 @@ class TestCourier:
         assert courier.value.status == CourierStatus.free
 
     def test_can_assign_when_free_and_cannot_when_busy(self):
+        order_id = Order.create(
+                uuid.uuid4(),
+                Location.create(1, 2).value
+            ).value.courier_id
         courier = Courier.create(uuid.uuid4(), "Petya",
                                  Transport.create("Good car", 1).value,
                                  Location.create(1, 2).value).value
 
-        assign_result = courier.assign()
+        assign_result = courier.assign(order_id)
         assert assign_result.is_success
         assert courier.status == CourierStatus.busy
 
-        second_assign = courier.assign()
+        second_assign = courier.assign(order_id)
         assert not second_assign.is_success
         assert second_assign.error is not None
 
@@ -61,7 +66,10 @@ class TestCourier:
         courier = Courier.create(uuid.uuid4(), "Petya",
                                  Transport.create("Good car", 1).value,
                                  Location.create(1, 2).value).value
-        courier.assign()
+        courier.assign(Order.create(
+                uuid.uuid4(),
+                Location.create(1, 2).value
+            ).value.courier_id)
 
         complete_result = courier.complete()
         assert complete_result.is_success
