@@ -1,5 +1,6 @@
 import uuid
 import pytest
+
 from delivery_core.domain.model.order_aggregate.order import Order
 from delivery_core.domain.model.order_aggregate.order_status import \
     OrderStatus
@@ -17,7 +18,7 @@ class TestOrder:
     @pytest.mark.parametrize("order_id,location", get_invalid_order_data())
     def test_return_error_when_params_incorrect(self, order_id, location):
         order_result = Order.create(order_id, location)
-        assert not order_result.is_success
+        assert not order_result.success
         assert order_result.error is not None
 
     def test_be_correct_when_params_correct(self):
@@ -28,12 +29,12 @@ class TestOrder:
         assert order_result.is_success
         assert order_result.value.id == guid
         assert order_result.value.location == location
-        assert order_result.value.status == OrderStatus.created()
+        assert order_result.value.status == OrderStatus.created().name
 
-    def test_can_assign_when_created_and_cannot_when_assigned(self):
+    def test_can_assign_when_created_and_cannot_when_assigned(self, create_courier):
         order = Order.create(uuid.uuid4(), Location.create(1, 2).value).value
 
-        assign_result = order.assign()
+        assign_result = order.assign(create_courier().value)
         assert assign_result.is_success
         assert order.status == OrderStatus.assigned()
 
@@ -41,9 +42,10 @@ class TestOrder:
         assert not second_assign.is_success
         assert second_assign.error is not None
 
-    def test_can_complete_when_assigned(self):
+    def test_can_complete_when_assigned(self, create_courier):
         order = Order.create(uuid.uuid4(), Location.create(1, 2).value).value
-        order.assign()
+
+        order.assign(create_courier().value)
 
         complete_result = order.complete()
         assert complete_result.is_success

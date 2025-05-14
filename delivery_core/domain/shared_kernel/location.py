@@ -1,5 +1,4 @@
 import random
-from dataclasses import dataclass
 from typing import Any, Generator
 from functools import total_ordering
 
@@ -66,15 +65,3 @@ class Location:
 
     def __repr__(self) -> str:
         return f"Location(x={self.x}, y={self.y})"
-
-    # Для совместимости с C# стилем
-    @staticmethod
-    def Create(x: int, y: int) -> Result['Location', Error]:
-        return Location.create(x, y)
-
-    @staticmethod
-    def CreateRandom() -> 'Location':
-        return Location.create_random()
-
-    def CalculateDistanceTo(self, other: 'Location') -> int:
-        return self.calculate_distance_to(other)

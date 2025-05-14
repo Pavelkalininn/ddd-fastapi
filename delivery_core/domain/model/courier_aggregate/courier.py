@@ -1,6 +1,7 @@
 from typing import Optional
 import uuid
 
+
 from delivery_core.domain.model.courier_aggregate.courier_status import \
     CourierStatus
 from delivery_core.domain.model.courier_aggregate.transport import Transport
@@ -10,12 +11,12 @@ from delivery_other.primitives import Result, UnitResult
 
 
 class Courier:
-    def __init__(self, courier_id: uuid.UUID, name: str, transport: Transport, location: Location):
+    def __init__(self, courier_id: uuid.UUID, name: str, transport: Transport, location: Location, status: CourierStatus = CourierStatus.free):
         self.id = courier_id
         self.name = name
         self.transport = transport
         self.location = location
-        self.status = CourierStatus.free
+        self.status = status
         self.courier_id: Optional[uuid.UUID] = None
 
     @classmethod
@@ -34,7 +35,9 @@ class Courier:
         if not courier_id:
             return UnitResult.failure(GeneralErrors.value_is_required("courier"))
         if self.status != CourierStatus.free:
-            return UnitResult.failure(Errors.cant_assign_order_to_busy_courier(courier_id))
+            return UnitResult.failure(
+                Errors.cant_assign_order_to_busy_courier(courier_id)
+            )
 
         self.courier_id = courier_id
         self.status = CourierStatus.busy

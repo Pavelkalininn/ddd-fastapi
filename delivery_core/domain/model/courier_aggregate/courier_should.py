@@ -55,11 +55,11 @@ class TestCourier:
                                  Location.create(1, 2).value).value
 
         assign_result = courier.assign(order_id)
-        assert assign_result.is_success
+        assert assign_result.success
         assert courier.status == CourierStatus.busy
 
         second_assign = courier.assign(order_id)
-        assert not second_assign.is_success
+        assert not second_assign.success
         assert second_assign.error is not None
 
     def test_can_complete_when_busy(self):
@@ -72,11 +72,11 @@ class TestCourier:
             ).value.courier_id)
 
         complete_result = courier.complete()
-        assert complete_result.is_success
+        assert complete_result.success
         assert courier.status == CourierStatus.free
 
         second_complete = courier.complete()
-        assert not second_complete.is_success
+        assert not second_complete.success
         assert second_complete.error is not None
 
     def test_get_step_count_correct(self):
@@ -85,7 +85,7 @@ class TestCourier:
                                  Transport.create("Bicycle", 1).value,
                                  Location.create(1, 1).value).value
         assert courier.get_step_count(
-            destination.value).value == 8  # Manhattan distance (4+4)/1
+            destination.value).value == 8
 
     def test_move_correct(self):
         target = Location.create(5, 5).value

@@ -23,7 +23,7 @@ pip install --no-cache-dir --upgrade -r requirements.txt
 
 ```sh
 source venv/bin/activate
-fastapi run main.py --port 8000
+fastapi run main.py --host 1.0.0.127 --port 8000
 ```
 
 ### By docker compose
