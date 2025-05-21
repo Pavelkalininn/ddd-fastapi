@@ -13,8 +13,6 @@ from delivery_core.application.use_cases.queries.get_all_couriers.get_all_courie
     GetAllCouriersQuery
 from delivery_core.application.use_cases.queries.get_all_couriers.get_all_couriers_response import \
     GetAllCouriersResponse
-from delivery_core.application.use_cases.queries.get_not_completed_orders import \
-    get_not_completed_orders_handler
 from delivery_core.application.use_cases.queries.get_not_completed_orders.get_not_completed_orders_handler import \
     GetNotCompletedOrdersHandler
 from delivery_core.application.use_cases.queries.get_not_completed_orders.get_not_completed_orders_query import \
@@ -97,7 +95,7 @@ async def health_check():
 
 @app.get("/couriers", response_model=GetAllCouriersResponse)
 async def get_couriers(
-    handler: GetAllCouriersHandler = Depends(get_couriers_handler)
+    handler: GetAllCouriersHandler = Depends(GetAllCouriersHandler)
 ):
     response = await handler.handle(GetAllCouriersQuery())
     if not response:
@@ -106,7 +104,7 @@ async def get_couriers(
 
 @app.get("/orders/not-completed", response_model=GetNotCompletedOrdersResponse)
 async def get_not_completed_orders(
-    handler: GetNotCompletedOrdersHandler = Depends(get_not_completed_orders_handler)
+    handler: GetNotCompletedOrdersHandler = Depends(GetNotCompletedOrdersHandler)
 ):
     response = await handler.handle(GetNotCompletedOrdersQuery())
     if not response:

@@ -10,34 +10,19 @@ from .get_not_completed_orders_response import GetNotCompletedOrdersResponse, \
 
 
 class GetNotCompletedOrdersHandler:
-    """Обработчик запроса незавершенных заказов"""
+    async def handle(self, db: AsyncSession) -> GetNotCompletedOrdersResponse:
+        """Получить все незавершенные заказы"""
+        stmt = select(Order).where(not_(DbOrder.status == "completed"))
+        result = await db.execute(stmt)
+        orders = result.scalars().all()
 
-    def __init__(self, session: AsyncSession):
-        self._session = session
-
-    async def handle(self, query: GetNotCompletedOrdersQuery) -> Optional[
-        GetNotCompletedOrdersResponse]:
-        """Обработать запрос"""
-        stmt = select(Order).where(
-            not_(Order.status == OrderStatus.completed())
+        return GetNotCompletedOrdersResponse(
+            orders=[
+                OrderResponse(
+                    id=order.id,
+                    location={"x": order.location_x, "y": order.location_y},
+                    status=order.status
+                )
+                for order in orders
+            ]
         )
-
-        result = await self._session.execute(stmt)
-        db_orders = result.scalars().all()
-
-        if not db_orders:
-            return None
-
-        orders = [
-            OrderResponse(
-                id=order.id,
-                location=LocationResponse(
-                    x=order.location_x,
-                    y=order.location_y
-                ),
-                status=order.status
-            )
-            for order in db_orders
-        ]
-
-        return GetNotCompletedOrdersResponse(orders=orders)

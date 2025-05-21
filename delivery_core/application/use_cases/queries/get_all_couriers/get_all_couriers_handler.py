@@ -3,10 +3,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.engine import Result
 
+from delivery_core.domain.model.courier_aggregate.courier import Courier
 from .get_all_couriers_query import GetAllCouriersQuery
 from .get_all_couriers_response import CourierResponse, GetAllCouriersResponse, \
     Location
-from ...infrastructure.database import models as db_models
 
 
 class GetAllCouriersHandler:
@@ -18,7 +18,7 @@ class GetAllCouriersHandler:
     async def handle(self, query: GetAllCouriersQuery) -> Optional[
         GetAllCouriersResponse]:
         """Обработать запрос"""
-        stmt = select(db_models.Courier)
+        stmt = select(Courier)
         result: Result = await self._session.execute(stmt)
         db_couriers = result.scalars().all()
 
