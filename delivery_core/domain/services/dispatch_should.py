@@ -38,13 +38,13 @@ class TestDispatchService:
         # Mock Courier.get_all()
         monkeypatch.setattr(
             Courier,
-            'get_all',
+            'create',
             lambda: [self.nearest_free, self.far_free, self.busy]
         )
 
     def test_select_nearest_free_courier(self, setup_couriers):
         order_location = Location(10, 10)
-        order = Order(location=order_location)
+        order = Order(location=order_location, order_id=uuid.uuid4())
 
         service = DispatchService()
         result = service.dispatch(order)

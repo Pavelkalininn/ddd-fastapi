@@ -29,3 +29,4 @@ class Result(Generic[T, E]):
         self.value = value
         self.error = error
         self.is_success = error is None
+
