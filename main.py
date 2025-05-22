@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 import os
 from typing import AsyncGenerator
 
+from delivery_API.containers import BackgroundJobsContainer
 from delivery_core.application.use_cases.queries.get_all_couriers.get_all_couriers_handler import \
     GetAllCouriersHandler
 from delivery_core.application.use_cases.queries.get_all_couriers.get_all_couriers_query import \
@@ -36,17 +37,43 @@ from delivery_infrastructure.adapters.postgres.unit_of_work import UnitOfWork
 
 load_dotenv()
 
+
+container = BackgroundJobsContainer()
+container.init_resources()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     engine = create_engine(os.getenv("DB_CREDS"))
     OrderModel.metadata.create_all(bind=engine)
     TransportModel.metadata.create_all(bind=engine)
     CourierModel.metadata.create_all(bind=engine)
-    yield
-    # Cleanup on shutdown
-    engine.dispose()
 
-app = FastAPI(lifespan=lifespan)
+
+    scheduler = container.scheduler()
+    scheduler.start()
+    job = container.assign_orders_job()
+    job.schedule(interval_seconds=60)
+    yield
+
+
+    engine.dispose()
+    scheduler.shutdown()
+
+app = FastAPI(
+
+    title="Delivery Service API",
+    description="Отвечает за управление курьерами и заказами",
+    version="1.0.0",
+    contact={
+        "name": "Pavel Kalinin",
+        "url": "https://github.com/pavelkalininn/",
+        "email": "oecb@ya.ru"
+    },
+    lifespan=lifespan,
+    swagger_ui_parameters={"docExpansion": "none"}
+
+
+)
 
 # Configuration
 app.add_middleware(
@@ -87,6 +114,9 @@ def get_order_repository(db = Depends(get_db)) -> OrderRepository:
 #     OrderRepository: get_order_repository
 # })
 
+
+
+
 # Health Check
 @app.get("/health")
 async def health_check():
@@ -113,4 +143,4 @@ async def get_not_completed_orders(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8082)
