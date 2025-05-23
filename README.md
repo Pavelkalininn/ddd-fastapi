@@ -53,3 +53,16 @@ docker tag delivery:latest github.com/pavelkalininn/delivery:latest
 
 docker push github.com/pavelkalininn/delivery:latest
 ```
+
+
+For api generation by the OpenApi file do:
+    
+    pip install openapi-generator-cli
+    cd delivery_API/adapters/http/contract
+    openapi-generator-cli generate -i https://gitlab.com/microarch-ru/microservices/dotnet/system-design/-/raw/main/services/delivery/contracts/openapi.yml -g python -o . --package-name OpenApi --additional-properties classModifier=abstract --additional-properties operationResultTask=true
+
+For grpc api generate by the protobuf file do:
+
+    pip install grpcio
+    pip install grpcio-tools
+    python -m grpc_tools.protoc -I delivery_infrastructure/adapters/grpc/ --python_out=. --pyi_out=. --grpc_python_out=. delivery_infrastructure/adapters/grpc/contract.proto

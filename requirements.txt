@@ -10,3 +10,5 @@ SQLAlchemy~=2.0.41
 alembic~=1.15.2
 uvicorn~=0.34.2
 dependency_injector==4.46.0
+grpcio==1.71.0
+grpcio-tools==1.71.0
