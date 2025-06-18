@@ -1,3 +1,5 @@
+import asyncio
+
 from dotenv import load_dotenv
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +10,7 @@ import os
 from typing import AsyncGenerator
 
 from delivery_API.containers import BackgroundJobsContainer
+from delivery_API.dependencies import get_kafka_consumer
 from delivery_core.application.use_cases.queries.get_all_couriers.get_all_couriers_handler import \
     GetAllCouriersHandler
 from delivery_core.application.use_cases.queries.get_all_couriers.get_all_couriers_query import \
@@ -59,6 +62,23 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     engine.dispose()
     scheduler.shutdown()
 
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    consumer = get_kafka_consumer()
+
+    # Запускаем consumer в фоне
+    task = asyncio.create_task(consumer.consume_async())
+
+    yield
+
+    # Очистка при завершении
+    task.cancel()
+    try:
+        await task
+    except asyncio.CancelledError:
+        pass
 app = FastAPI(
 
     title="Delivery Service API",
@@ -122,6 +142,16 @@ def get_order_repository(db = Depends(get_db)) -> OrderRepository:
 async def health_check():
     return {"status": "healthy"}
 
+@app.get("/geolocation/{street}")
+async def get_geolocation(
+    street: str,
+    geo_client: GeoClient = Depends(get_geo_client)
+):
+    result = await geo_client.get_geolocation_async(street)
+    if result.is_err():
+        return {"error": result.unwrap_err()}
+    x, y = result.unwrap()
+    return {"x": x, "y": y}
 
 @app.get("/couriers", response_model=GetAllCouriersResponse)
 async def get_couriers(
